@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "416318158607",
+    "project_id": "gptcentral-9438f",
+    "storage_bucket": "gptcentral-9438f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:416318158607:android:ed87eca304da1dab96307a",
+        "android_client_info": {
+          "package_name": "com.example.gptcentral"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "416318158607-q480j35iogajegsr9indqv5h42kpn0q8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBergDVNievEmsAetDUZSwLV-GJ13DuAMs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "416318158607-q480j35iogajegsr9indqv5h42kpn0q8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
