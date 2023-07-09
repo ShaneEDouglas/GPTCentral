@@ -29,7 +29,7 @@ To set up Firebase for your project, follow these steps:
 1. Open Android Studio.
 2. Navigate to the Tools tab and select Firebase. This will open the Firebase assistant on the right side.
 3. Under Firebase Authentication, click on the "Authenticate using a custom authntication system" dropdown.
-4. Click on the "Connect to Firebase" and 'Add the Firebase Authentication SDK" buttons to connect your app to Firebase. A browser window will open, asking you to sign in to your Firebase account. IF not then go to the [Firebase Website](https://firebase.google.com/?gad=1&gclid=Cj0KCQjwtamlBhD3ARIsAARoaEyCe-cOjOlmgUm8UuhH5FqKXO60IasPznBtm6t7NbhMMneNg301hfkaAlt3EALw_wcB&gclsrc=aw.ds) directly
+4. Click on the "Connect to Firebase" and 'Add the Firebase Authentication SDK" buttons to connect your app to Firebase. A browser window will open, asking you to sign in to your Firebase account. If not then go to the [Firebase Website](https://firebase.google.com/?gad=1&gclid=Cj0KCQjwtamlBhD3ARIsAARoaEyCe-cOjOlmgUm8UuhH5FqKXO60IasPznBtm6t7NbhMMneNg301hfkaAlt3EALw_wcB&gclsrc=aw.ds) directly
 5. After signing in, click on "Add project" and follow the instructions to create a new project in your Firebase account.
 6. Once the project is created, download the `google-services.json` file.
 7. Go back to Android Studio and open the project view (from the dropdown in the top-left corner of the screen that usually says "Android").
