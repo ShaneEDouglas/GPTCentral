@@ -58,15 +58,27 @@ To run the project, follow these steps:
 2. Open the project in your preferred IDE.
 3. Run the project.
 
-## Video Demo
+## Project Demo
 
 Here's a video / GIF that demos all of the app's implemented features:
 
+
+### Login
+![alt text](anotherway.gif)
+
+### ChatBot
+![alt text](anotherway.gif)
+
+### Image Genration
+![alt text](anotherway.gif)
+
+### Profile
 ![alt text](anotherway.gif)
 
 ## Notes
 
 - You wil need to pay for the OpenAI API key
+- **Any Comments, concerns or feedback are always welcomed!** 
 
 ## License
 
