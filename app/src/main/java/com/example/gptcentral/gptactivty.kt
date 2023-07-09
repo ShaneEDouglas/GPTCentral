@@ -11,6 +11,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 
 
@@ -23,9 +24,12 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester.Companion.createRefs
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -43,6 +47,12 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat.startActivity
 import com.example.gptcentral.ui.theme.GPTCentralTheme
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+
+import kotlinx.coroutines.launch
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -58,7 +68,6 @@ class gptactivty : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             GPTCentralTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
@@ -71,114 +80,159 @@ class gptactivty : ComponentActivity() {
 }
 
 
+
+
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun Mainscreen() {
     val messagelist = remember { mutableStateListOf<Message>() }
     val context = LocalContext.current
-    var expanded by remember { mutableStateOf(false) }
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        TopAppBar(
-            title = { Text("GPTCentral Chat") },
-            actions = {
-                IconButton(onClick = { handlelogout(context) }) {
-                    Text("Logout")
-                }
-                IconButton(onClick = { expanded = !expanded }) {
-                    Icon(Icons.Filled.Menu, contentDescription = "More Options")
-                }
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
+    ModalDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+                Column(
+
                 ) {
-                    DropdownMenuItem(onClick = {
-                        expanded = false
-                        val intent = Intent(context, profileactivity::class.java)
-                        context.startActivity(intent)
-                    }) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(colorResource(id = R.color.purple_500))
+
+                        ) {
+                            androidx.compose.material3.Text(
+                                text = "Main Menu",
+                                modifier = Modifier.padding(16.dp),
+                                color = Color.White,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    ListItem(
+                        modifier = Modifier.clickable(
+                            onClick = {
+                                scope.launch {
+                                    drawerState.close()
+                                    val intent = Intent(context, profileactivity::class.java)
+                                    context.startActivity(intent)
+                                }
+                            }
+                        ),
+                        icon = {
+                            Image(painterResource(id = R.drawable.profile), contentDescription = "Profile") }
+                    ) {
                         Text("Profile")
                     }
-                    DropdownMenuItem(onClick = {
-                        expanded = false
-                        val intent = Intent(context, imagegenactivity::class.java)
-                        context.startActivity(intent)
-                    }) {
+                    ListItem(
+                        modifier = Modifier.clickable(
+                            onClick = {
+                                scope.launch {
+                                    drawerState.close()
+                                    val intent = Intent(context, imagegenactivity::class.java)
+                                    context.startActivity(intent)
+                                }
+                            }
+                        ),
+                        icon = {
+                            Image(painterResource(id = R.drawable.baseline_image_24), contentDescription = "Profile") }
+                    ) {
                         Text("Image Generator")
                     }
-                    androidx.compose.material.DropdownMenuItem(onClick = {
-                        expanded = false
-                        val intent = Intent(context, gptactivty::class.java)
-                        context.startActivity(intent)
-                    }) {
-                        androidx.compose.material.Text("Chat Bot")
+                    ListItem(
+                        modifier = Modifier.clickable(
+                            onClick = {
+                                scope.launch {
+                                    drawerState.close()
+                                    val intent = Intent(context, gptactivty::class.java)
+                                    context.startActivity(intent)
+                                }
+                            }
+                        ),
+                        icon = {
+                            Image(painterResource(id = R.drawable.chat), contentDescription = "Profile") }
+                    ) {
+                        Text("Chat Bot")
+                    }
+                    ListItem(
+                        modifier = Modifier.clickable(
+                            onClick = {
+                                scope.launch {
+                                    drawerState.close()
+                                    handlelogout(context)
+                                }
+                            }
+                        ),
+                        icon = {
+                            Image(painterResource(id = R.drawable.logout), contentDescription = "Profile") }
+
+                    ) {
+                        Text("Logout")
                     }
                 }
-            }
-        )
-
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .background(Color.White)
-        ) {
-            chatsection(
-                messagelist = messagelist,
+        },
+        content = {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp) // adjust as needed
-            )
-        }
-        Divider(thickness = 2.dp)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                 // optional, just to distinguish the area
-        ) {
-            inputsection(
-                messagelist = messagelist
-            )
-        }
-    }
-}
+                    .fillMaxSize()
+                    .background(Color.White)
+            ) {
+                TopAppBar(
+                    title = { Text("GPTCentral Chat") },
+                    actions = {
+                        IconButton(
+                            onClick = { scope.launch { drawerState.open() } },
 
+                        ) {
+                            Icon(
+                                Icons.Filled.Menu,
+                                contentDescription = "More Options",
+                                tint = Color.White
+                            )
+                        }
+                    },
 
-//Design what each message will look like
-
-@Composable
-fun MessageCard(message:Message) { val backgroundcolor = if(message.isuser) colorResource(id = R.color.chatgreen) else Color.Blue
-        Card(
-            modifier = Modifier
-                .padding(20.dp),
-            shape = RoundedCornerShape(15.dp),
-            backgroundColor = backgroundcolor,
-            elevation = 10.dp
-        ) {
-            Column() {
-
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    fontFamily = FontFamily.SansSerif,
-                    fontSize = 20.sp,
-                    text = message.message?:"",
-                    modifier = Modifier.padding(8.dp),
-                    color = Color.White,
-                    textAlign = TextAlign.Center
+                    elevation = 6.dp,
                 )
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .background(Color.White)
+                ) {
+                    chatsection(
+                        messagelist = messagelist,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    )
+                }
+                Divider(thickness = 2.dp,)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    inputsection(
+                        messagelist = messagelist,
+                        context
+                    )
+                }
             }
         }
+    )
 }
 
 @Composable
-fun chatsection(messagelist: MutableList<Message>,modifier: Modifier = Modifier) {
+fun chatsection(messagelist: MutableList<Message>, modifier: Modifier = Modifier) {
     val liststate = rememberLazyListState()
 
     LazyColumn(
         state = liststate,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier
     ) {
         items(messagelist) { message ->
             Row(
@@ -192,53 +246,109 @@ fun chatsection(messagelist: MutableList<Message>,modifier: Modifier = Modifier)
         }
     }
 
-    // Scroll to bottom every time messagelist changes
     LaunchedEffect(messagelist.size) {
         if (messagelist.isNotEmpty()) {
             liststate.animateScrollToItem(index = messagelist.size - 1)
         }
     }
 }
+
 @Composable
-fun inputsection(messagelist: MutableList<Message>,modifier: Modifier = Modifier) {
+fun inputsection(messagelist: MutableList<Message>,context: Context) {
     var text by remember { mutableStateOf("") }
     val gptResponse = remember { mutableStateOf("") }
+    val isBotTyping = remember { mutableStateOf(false) }
 
-
-    LaunchedEffect(gptResponse.value) {  // Observe changes in gptResponse
-        if(gptResponse.value.isNotBlank()) {
-            messagelist.add(Message(gptResponse.value, false)) // Add bot's response to the message list
-            gptResponse.value = ""  // Reset gptResponse
+    LaunchedEffect(gptResponse.value) {
+        if (gptResponse.value.isNotBlank()) {
+            messagelist.add(Message(gptResponse.value, false))
+            gptResponse.value = ""
+            isBotTyping.value = false
         }
     }
 
-    Row( modifier = Modifier
-        .fillMaxWidth()
-        .padding(12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalAlignment = Alignment.Bottom
     ) {
         TextField(
-            modifier = Modifier,
-            shape = RoundedCornerShape(4.dp),
+            modifier = Modifier
+                .weight(1f)
+                .padding(8.dp)
+                .fillMaxWidth()
+                ,
+            shape = RoundedCornerShape(16.dp),
             value = text,
             onValueChange = { newText ->
                 text = newText
             },
-            label = {Text("Enter a Message...")}
+            placeholder = {
+                Text(
+                    text = "Type a message...",
+                    style = TextStyle(color = colorResource(id = R.color.black))
+                )
+            },
+            trailingIcon = {
+                IconButton(
+                    onClick = {
+                        if (text.isBlank()) {
+                            Toast.makeText(context, "Type a message", Toast.LENGTH_SHORT).show()
+                        } else {
+                            gptapidata(text, gptResponse, messagelist)
+                            messagelist.add(Message(text, true))
+                            text = ""
+                            isBotTyping.value = true
+                        }
+                    },
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Send,
+                        contentDescription = "Send Message",
+                    )
+                }
+            },
         )
-
-        IconButton(
-            onClick = {
-                //call the api
-                gptapidata(text, gptResponse,messagelist)
-                messagelist.add(Message(text, true))
-                text = ""
-            }
-        ) {
-            Icon(imageVector = Icons.Default.Send, contentDescription = "Send Message" )
+        if (isBotTyping.value) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .size(24.dp),
+                color = MaterialTheme.colors.primary
+            )
         }
     }
 }
+
+@Composable
+fun MessageCard(message: Message) {
+    val backgroundColor = if (message.isuser) colorResource(id = R.color.chatgreen) else colorResource(id = androidx.appcompat.R.color.material_blue_grey_800)
+    Card(
+        modifier = Modifier.padding(8.dp),
+        shape = RoundedCornerShape(16.dp),
+        backgroundColor = backgroundColor,
+        elevation = 4.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp)
+        ) {
+            Text(
+
+                text = message.message ?: "",
+                modifier = Modifier.padding(8.dp),
+                style = TextStyle(
+                    fontFamily = FontFamily.Default,
+                    fontSize = 16.sp,
+                    color = if (message.isuser) Color.White else Color.White
+                )
+            )
+        }
+    }
+}
+
+
 
 
 fun handlelogout(context: Context){
@@ -256,7 +366,7 @@ fun gptapidata(prompt: String, gptResponse: MutableState<String>, messagelist: M
 
     //set up the OkHttp api call
     val url = "https://api.openai.com/v1/completions"
-    val apikey = "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"
+    val apikey = "YOUR_API_KEY_HERE"
 
     //get the json type
     val jsonMediatype = "application/json; charset=utf-8".toMediaType()
@@ -275,7 +385,7 @@ fun gptapidata(prompt: String, gptResponse: MutableState<String>, messagelist: M
     }
 
     //make the requestbody
-    //can't use on create
+
 
     val requestbody = json.toString().toRequestBody(jsonMediatype)
 
@@ -301,7 +411,7 @@ fun gptapidata(prompt: String, gptResponse: MutableState<String>, messagelist: M
                 Log.d("Call was successful", "this is your response: $responseBody")
                 val jsonarray = JSONObject(responseBody).getJSONArray("choices")
 
-                // Similar to pet data, you could create a list to hold multiple responses
+
                 val gptResponses = mutableListOf<String>()
 
                 for(i in 0 until jsonarray.length()){
@@ -309,7 +419,7 @@ fun gptapidata(prompt: String, gptResponse: MutableState<String>, messagelist: M
                     gptResponses.add(botresponse)
                 }
 
-                // Use the first response for the message list, or handle as needed
+
                 gptResponse.value = gptResponses[0]
 
             } catch (e: JSONException) {

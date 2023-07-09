@@ -14,21 +14,37 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.TopAppBar
+import androidx.compose.material.*
+import androidx.compose.material.DrawerValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -37,8 +53,15 @@ import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
 import com.example.gptcentral.ui.theme.GPTCentralTheme
 import com.google.android.gms.tasks.OnSuccessListener
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
+import dalvik.annotation.TestTarget
+import kotlinx.coroutines.launch
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -79,148 +102,221 @@ class imagegenactivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalGlideComposeApi::class,
+    ExperimentalMaterialApi::class
+)
 @Composable
 fun Mainimgscreen(imageurl:MutableState<String?>) {
 
     val context = LocalContext.current
-    var expanded by remember { mutableStateOf(false) }
     var text by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
+    var scope = rememberCoroutineScope()
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
 
 
 
+
+
+    ModalDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            Column(
+
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(colorResource(id = R.color.purple_500))
+
+                ) {
+                    Text(
+                        text = "Main Menu",
+                        modifier = Modifier.padding(16.dp),
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                ListItem(
+                    modifier = Modifier.clickable(
+                        onClick = {
+                            scope.launch {
+                                drawerState.close()
+                                val intent = Intent(context, profileactivity::class.java)
+                                context.startActivity(intent)
+                            }
+                        }),
+                    icon = {
+                        Image(
+                            painterResource(id = R.drawable.profile),
+                            contentDescription = "Profile"
+                        )
+                    }
+                ) {
+                    androidx.compose.material.Text("Profile")
+                }
+                ListItem(
+                    modifier = Modifier.clickable(
+                        onClick = {
+                            scope.launch {
+                                drawerState.close()
+                                val intent = Intent(context, imagegenactivity::class.java)
+                                context.startActivity(intent)
+                            }
+                        }),
+                    icon = {
+                        Image(
+                            painterResource(id = R.drawable.baseline_image_24),
+                            contentDescription = "Profile"
+                        )
+                    }
+                ) {
+                    androidx.compose.material.Text("Image Generator")
+                }
+                ListItem(
+                    modifier = Modifier.clickable(
+                        onClick = {
+                            scope.launch {
+                                drawerState.close()
+                                val intent = Intent(context, gptactivty::class.java)
+                                context.startActivity(intent)
+                            }
+                        }),
+                    icon = {
+                        Image(painterResource(id = R.drawable.chat), contentDescription = "Profile")
+                    }
+                ) {
+                    androidx.compose.material.Text("Chat Bot")
+                }
+
+                ListItem(
+                    modifier = Modifier.clickable(
+                        onClick = {
+                            scope.launch {
+                                drawerState.close()
+                                handlelogout(context)
+                            }
+                        }),
+                    icon = {
+                        Image(
+                            painterResource(id = R.drawable.logout),
+                            contentDescription = "Profile"
+                        )
+                    }
+                ) {
+                    androidx.compose.material.Text("Logout")
+                }
+            }
+        },
+
+        content = {
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp)
+
     ) {
         TopAppBar(
+            modifier = Modifier.fillMaxWidth(),
             title = { androidx.compose.material.Text("GPTCentral Chat") },
             actions = {
-                androidx.compose.material.IconButton(onClick = { handlelogout(context) }) {
-                    androidx.compose.material.Text("Logout")
-                }
-                androidx.compose.material.IconButton(onClick = { expanded = !expanded }) {
+                androidx.compose.material.IconButton(onClick = { scope.launch { drawerState.open() } }) {
                     androidx.compose.material.Icon(
                         Icons.Filled.Menu,
                         contentDescription = "More Options"
                     )
                 }
-                androidx.compose.material.DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    androidx.compose.material.DropdownMenuItem(onClick = {
-                        expanded = false
-                        val intent = Intent(context, profileactivity::class.java)
-                        context.startActivity(intent)
-                    }) {
-                        androidx.compose.material.Text("Profile")
-                    }
-                    androidx.compose.material.DropdownMenuItem(onClick = {
-                        expanded = false
-                        val intent = Intent(context, imagegenactivity::class.java)
-                        context.startActivity(intent)
-                    }) {
-                        androidx.compose.material.Text("Image Generator")
-                    }
-                    androidx.compose.material.DropdownMenuItem(onClick = {
-                        expanded = false
-                        val intent = Intent(context, gptactivty::class.java)
-                        context.startActivity(intent)
-                    }) {
-                        androidx.compose.material.Text("Chat Bot")
-                    }
-                }
             }
         )
 
-        Text(
-            textAlign = TextAlign.Center,
-            text = "GPT Image Generator",
-            fontSize = 28.sp,
-            fontFamily = FontFamily.SansSerif,
-            color = MaterialTheme.colorScheme.onPrimary
-        )
+                Text(
+                    textAlign = TextAlign.Center,
+                    text = "GPT Image Generator",
+                    fontSize = 28.sp,
+                    fontFamily = FontFamily.SansSerif,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
 
-        Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(20.dp))
+        TextField(
 
-        OutlinedTextField(
             value = text,
-            onValueChange = { newtext -> text = newtext },
-            label = { Text("Enter your Prompt") },
-            modifier = Modifier
-                .padding(10.dp)
-                .fillMaxWidth(),
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-
-                cursorColor = MaterialTheme.colorScheme.primary,
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.primary
-            )
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Button(
+            onValueChange = { newText -> text = newText },
+            label = { Text(text = "Enter your Prompt") },
+            shape = RoundedCornerShape(12.dp),
+            colors = TextFieldDefaults.textFieldColors(
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent
+            ),
+            textStyle = androidx.compose.material.MaterialTheme.typography.body1,
+            singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            onClick = {
-                isLoading = true
-                getgptimg(text, context) { url ->
-                    imageurl.value = url
-                    isLoading = false
-                }
-            },
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(
-                contentColor = MaterialTheme.colorScheme.primary
-            )
-        ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(ButtonDefaults.IconSize),
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            } else {
-                Text(
-                    text = "Generate Image",
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-        }
+                .padding(16.dp),
+        )
 
-        Spacer(modifier = Modifier.height(10.dp))
-        Box(modifier = Modifier.weight(1f)) {
-            Card(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(10.dp)
-            ) {
-                if (imageurl.value != null) {
-                    GlideImage(
-                        model = imageurl.value,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.FillBounds
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Button(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    onClick = {
+                        isLoading = true
+                        getgptimg(text, context) { url ->
+                            imageurl.value = url
+                            isLoading = false
+                        }
+                    },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
                     )
-                } else {
-                    // Fallback if there is no image yet
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_launcher_background),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.FillBounds
-                    )
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(ButtonDefaults.IconSize),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    } else {
+                        Text(
+                            text = "Generate Image",
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+                Box(modifier = Modifier.weight(1f)) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(15.dp)
+                    ) {
+                        if (imageurl.value != null) {
+                            GlideImage(
+                                model = imageurl.value,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.FillBounds
+                            )
+                        } else {
+                            // Fallback if there is no image yet
+                            Image(
+                                painter = painterResource(id = R.drawable.makeimg),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.FillBounds
+                            )
+                        }
+                    }
                 }
             }
-        }
-    }
+
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -231,10 +327,12 @@ fun Mainimgscreen(imageurl:MutableState<String?>) {
                 .align(Alignment.BottomEnd),
             onClick = { imageurl.value?.let { downloadimage(it, context) } }
         ) {
-            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "Download")
-        }
-    }
+            Icon(painter = painterResource(id = R.drawable.download), contentDescription = "Image download")
+                }
+            }
+    })
 }
+
 
 
 
@@ -244,7 +342,7 @@ val imgClient = OkHttpClient()
 
 fun getgptimg(Prompt: String, context: Context, callback: (String) -> Unit)  {
     val url = "https://api.openai.com/v1/images/generations"
-    val apiKey = "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"
+    val apiKey = "YOUR_API_KEY_HERE"
 
     val jsonRequest = JSONObject()
         .put("prompt",Prompt)
@@ -257,7 +355,7 @@ fun getgptimg(Prompt: String, context: Context, callback: (String) -> Unit)  {
 
     val request = Request.Builder()
         .url(url)
-        .addHeader("Content-Type","applications/json")
+        .addHeader("Content-Type","application/json")
         .addHeader("Authorization", "Bearer $apiKey")
         .post(requestbody)
         .build()
@@ -283,17 +381,6 @@ fun getgptimg(Prompt: String, context: Context, callback: (String) -> Unit)  {
                 Log.d("Image Generation Error", "No 'data' object in the response")
                 Handler(Looper.getMainLooper()).post {
                     Toast.makeText(context, "Use a different prompt", Toast.LENGTH_SHORT).show()
-                }
-
-                val bytes = response.body?.byteStream()?.readBytes()
-
-                if (bytes != null) {
-                    val filename = "${System.currentTimeMillis()}.jpg"
-                    val file = File(context.cacheDir,filename)
-
-                    //get uri for file and save to firebase
-                    val uri = Uri.fromFile(file)
-                    saveimagetofirebase(context,uri)
                 }
             }
         }
