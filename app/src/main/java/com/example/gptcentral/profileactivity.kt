@@ -12,23 +12,33 @@ import androidx.activity.result.ActivityResultLauncher
 
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.TopAppBar
+import androidx.compose.material.*
+import androidx.compose.material.DrawerValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +54,7 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.ktx.storage
+import kotlinx.coroutines.launch
 import java.util.*
 
 
@@ -68,14 +79,15 @@ class profileactivity : ComponentActivity() {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 private fun ProfileScreen() {
     val context = LocalContext.current
-    var expanded by remember { mutableStateOf(false) }
     var uploadedImageUrl by remember { mutableStateOf<String?>(null) }
     var email by remember { mutableStateOf<String?>(null) }
     var username by remember { mutableStateOf<String?>(null) }
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
 
     // Handle image upload to Firebase
@@ -106,8 +118,8 @@ private fun ProfileScreen() {
 
 
                 uploadedImageUrl = snapshot.child("profilePicture").getValue(String::class.java)
-                username = snapshot.child("username").getValue(String::class.java)
-                 email = snapshot.child("email").getValue(String::class.java)
+                username = snapshot.child("username").getValue(String::class.java)?: ""
+                 email = snapshot.child("email").getValue(String::class.java)?: ""
 
 
             }
@@ -135,11 +147,92 @@ private fun ProfileScreen() {
     }
 
 
-    // Function to navigate to the change password screen
+
     fun navigateToChangePasswordScreen() {
         val intent = Intent(context, changepasswordscreen::class.java)
         context.startActivity(intent)
     }
+
+    ModalDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            Column(
+
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(colorResource(id = R.color.purple_500))
+
+                ) {
+                    Text(
+                        text = "Main Menu",
+                        modifier = Modifier.padding(16.dp),
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            ListItem(
+                modifier = Modifier.clickable(
+                    onClick = {
+                        scope.launch {
+                            drawerState.close()
+                            val intent = Intent(context, profileactivity::class.java)
+                            context.startActivity(intent)
+                        }
+                    }),
+                icon = {
+                    Image(painterResource(id = R.drawable.profile), contentDescription = "Profile") }
+            ) {
+                androidx.compose.material.Text("Profile")
+            }
+            ListItem(
+                modifier = Modifier.clickable(
+                    onClick = {
+                        scope.launch {
+                            drawerState.close()
+                            val intent = Intent(context, imagegenactivity::class.java)
+                            context.startActivity(intent)
+                        }
+                    }),
+                icon = {
+                    Image(painterResource(id = R.drawable.baseline_image_24), contentDescription = "Profile") }
+            ) {
+                androidx.compose.material.Text("Image Generator")
+            }
+            ListItem(
+                modifier = Modifier.clickable(
+                    onClick = {
+                        scope.launch {
+                            drawerState.close()
+                            val intent = Intent(context, gptactivty::class.java)
+                            context.startActivity(intent)
+                        }
+                    }),
+                icon = {
+                    Image(painterResource(id = R.drawable.chat), contentDescription = "Profile") }
+            ) {
+                androidx.compose.material.Text("Chat Bot")
+            }
+
+            ListItem(
+                modifier = Modifier.clickable(
+                    onClick = {
+                        scope.launch {
+                            drawerState.close()
+                            handlelogout(context)
+                        }
+                    }),
+                icon = {
+                    Image(painterResource(id = R.drawable.logout), contentDescription = "Profile") }
+            ) {
+                androidx.compose.material.Text("Logout")
+            }
+        }
+                        },
+
+        content = {
 
 //ui
     Column(
@@ -147,46 +240,19 @@ private fun ProfileScreen() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         TopAppBar(
+            modifier = Modifier.fillMaxWidth(),
             title = { androidx.compose.material.Text("GPTCentral Chat") },
             actions = {
-                androidx.compose.material.IconButton(onClick = { handlelogout(context) }) {
-                    androidx.compose.material.Text("Logout")
-                }
-                androidx.compose.material.IconButton(onClick = { expanded = !expanded }) {
+
+                androidx.compose.material.IconButton(onClick = { scope.launch { drawerState.open() } }) {
                     androidx.compose.material.Icon(
                         Icons.Filled.Menu,
                         contentDescription = "More Options"
                     )
                 }
-                androidx.compose.material.DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    androidx.compose.material.DropdownMenuItem(onClick = {
-                        expanded = false
-                        val intent = Intent(context, profileactivity::class.java)
-                        context.startActivity(intent)
-                    }) {
-                        androidx.compose.material.Text("Profile")
-                    }
-                    androidx.compose.material.DropdownMenuItem(onClick = {
-                        expanded = false
-                        val intent = Intent(context, imagegenactivity::class.java)
-                        context.startActivity(intent)
-                    }) {
-                        androidx.compose.material.Text("Image Generator")
-                    }
-                    androidx.compose.material.DropdownMenuItem(onClick = {
-                        expanded = false
-                        val intent = Intent(context, gptactivty::class.java)
-                        context.startActivity(intent)
-                    }) {
-                        androidx.compose.material.Text("Chat Bot")
-                    }
-                }
-            })
+            }
+        )
 
-        // Profile picture
         // Profile picture
         Card(
             modifier = Modifier
@@ -201,19 +267,24 @@ private fun ProfileScreen() {
                     .size(200.dp)
                     .fillMaxSize()
                     .clickable { openImagePicker() },
-                painter = if (uploadedImageUrl != null) rememberAsyncImagePainter(uploadedImageUrl) else painterResource(id = R.drawable.dummypic),
+                painter = if (uploadedImageUrl != null) rememberAsyncImagePainter(uploadedImageUrl) else painterResource(id = R.drawable.regpropic),
                 contentDescription = "Profile Picture",
                 contentScale = ContentScale.Crop
             )
         }
         Spacer(modifier = Modifier.height(1.dp))
-
+        val backgroundcolor = colorResource(id = androidx.appcompat.R.color.material_blue_grey_800)
         Card(
+
             modifier = Modifier
                 .padding(20.dp)
                 .width(300.dp)
                 .height(170.dp),
-            elevation = CardDefaults.cardElevation(10.dp)
+            elevation = CardDefaults.cardElevation(10.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
+
         ) {
             Text(
                 modifier = Modifier.padding(16.dp),
@@ -247,14 +318,12 @@ private fun ProfileScreen() {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp),
-            onClick = { /*TODO*/ },
+            onClick = { handlelogout(context) },
         ) {
             Text(text = "Log out")
         }
     }
-
-
-
+})
 }
 
 

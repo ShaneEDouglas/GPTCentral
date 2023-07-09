@@ -48,4 +48,5 @@
     <string name="title_activity_imagegenactivity">imagegenactivity</string>
     <string name="title_activity_profileactivity">profileactivity</string>
     <string name="title_activity_changepasswordscreen">changepasswordscreen</string>
+    <string name="title_activity_chatrooms">chatrooms</string>
 </resources>

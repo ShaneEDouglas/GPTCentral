@@ -24,13 +24,12 @@
             android:name=".profileactivity"
             android:exported="true"
             android:label="@string/title_activity_profileactivity"
-            android:theme="@style/Theme.GPTCentral">
-        </activity>
+            android:theme="@style/Theme.GPTCentral"></activity>
         <activity
             android:name=".imagegenactivity"
             android:exported="true"
             android:label="@string/title_activity_imagegenactivity"
-            android:theme="@style/Theme.GPTCentral"></activity>
+            android:theme="@style/Theme.GPTCentral" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -41,12 +40,15 @@
 
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
+
             </activity>
         <activity
             android:name=".gptactivty"
-            android:exported="false"
+            android:exported="true"
             android:label="@string/title_activity_gptactivty"
-            android:theme="@style/Theme.GPTCentral" />
+            android:theme="@style/Theme.GPTCentral">
+
+        </activity>
     </application>
 
 </manifest>

@@ -1,14 +1,18 @@
 package com.example.gptcentral
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -68,6 +72,8 @@ private fun ChangePasswordScreen() {
                             if (updateTask.isSuccessful) {
                                 // Password changed successfully
                                 Toast.makeText(context, "Password changed successfully", Toast.LENGTH_SHORT).show()
+                                val intent = Intent(context,profileactivity::class.java)
+                                context.startActivity(intent)
                             } else {
                                 // Password change failed, handle the error
                                 val errorMessage = updateTask.exception?.message
@@ -97,24 +103,44 @@ private fun ChangePasswordScreen() {
             value = currentPassword,
             onValueChange = { currentPassword = it },
             label = { Text("Current Password") },
+            shape = RoundedCornerShape(12.dp),
+            colors = TextFieldDefaults.textFieldColors(
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent
+            ),
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().shadow(elevation = 20.dp)
         )
-        Spacer(modifier = Modifier.height(16.dp))
+
+        Spacer(modifier = Modifier.height(32.dp))
         TextField(
             value = newPassword,
             onValueChange = { newPassword = it },
             label = { Text("New Password") },
+            shape = RoundedCornerShape(12.dp),
+            colors = TextFieldDefaults.textFieldColors(
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent
+            ),
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().shadow(elevation = 20.dp)
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp))
+
         TextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
             label = { Text("Confirm Password") },
+            shape = RoundedCornerShape(12.dp),
+            colors = TextFieldDefaults.textFieldColors(
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent
+            ),
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().shadow(elevation = 20.dp)
         )
         Spacer(modifier = Modifier.height(32.dp))
         Button(
