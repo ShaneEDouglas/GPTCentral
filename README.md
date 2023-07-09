@@ -64,16 +64,16 @@ Here's a video / GIF that demos all of the app's implemented features:
 
 
 ### Login
-![alt text](anotherway.gif)
+![alt text](gptlogin.gif)
 
 ### ChatBot
-![alt text](anotherway.gif)
+![alt text](gptchatting.gif)
 
 ### Image Genration
-![alt text](anotherway.gif)
+![alt text](gptimggen.gif)
 
 ### Profile
-![alt text](anotherway.gif)
+![alt text](gptprofile.gif)
 
 ## Notes
 
