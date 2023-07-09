@@ -6,8 +6,6 @@ Project by: **Shane Douglas**
 
 **GPT Central** is a project incorporating ChatGPT and Image Generation functionalities, with User Authentication provided by Firebase all done in Jetpack Compose
 
-This project is described by the following emojis: :persevere:, :triumph:, and :grinning:.
-
 ## Features
 
 - [x] User Profile
@@ -78,7 +76,7 @@ Here's a video / GIF that demos all of the app's implemented features:
 ## Notes
 
 - You wil need to pay for the OpenAI API key
-- **Any Comments, concerns or feedback are always welcomed!** 
+- **Any Comments, concerns or feedback are always welcomed! :wink:** 
 
 ## License
 
