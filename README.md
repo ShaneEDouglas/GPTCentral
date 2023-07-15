@@ -64,7 +64,7 @@ Here's a video / GIF that demos all of the app's implemented features:
 ### Login
 ![alt text](gptlogin.gif)
 
-### ChatBot
+### Chat Bot
 ![alt text](gptchatting.gif)
 
 ### Image Generation
