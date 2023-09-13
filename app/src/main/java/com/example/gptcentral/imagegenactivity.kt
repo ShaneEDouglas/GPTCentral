@@ -219,7 +219,7 @@ fun Mainimgscreen(imageurl:MutableState<String?>) {
     ) {
         TopAppBar(
             modifier = Modifier.fillMaxWidth(),
-            title = { androidx.compose.material.Text("GPTCentral Chat") },
+            title = { androidx.compose.material.Text("GPTCentral") },
             actions = {
                 androidx.compose.material.IconButton(onClick = { scope.launch { drawerState.open() } }) {
                     androidx.compose.material.Icon(
@@ -342,7 +342,7 @@ val imgClient = OkHttpClient()
 
 fun getgptimg(Prompt: String, context: Context, callback: (String) -> Unit)  {
     val url = "https://api.openai.com/v1/images/generations"
-    val apiKey = "YOUR_API_KEY_HERE"
+    val apiKey = "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"
 
     val jsonRequest = JSONObject()
         .put("prompt",Prompt)
